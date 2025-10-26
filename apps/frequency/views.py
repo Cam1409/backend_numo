@@ -24,20 +24,19 @@ def set_frecuencia_fija(request):
       - frecuencia_id (uuid)  O  frecuencia (texto: DIARIO/SEMANAL/QUINCENAL/MENSUAL)
     """
     freq = None
-    freq_id = request.data.get('frecuencia_id')
-    freq_txt = request.data.get('frecuencia')
+    frecuencia= request.data
 
-    if freq_id:
-        freq = Frecuencia.objects.filter(id_frecuencia=freq_id).first()
-    elif freq_txt:
-        freq = Frecuencia.objects.filter(descripcion=freq_txt.strip().upper()).first()
+    if frecuencia:
+        freq = Frecuencia.objects.filter(id_frecuencia=frecuencia["id_frecuencia"]).first()
 
     if not freq:
         return Response({"error": "Frecuencia inválida."}, status=status.HTTP_400_BAD_REQUEST)
+    
+    usuario=request.user
 
     with transaction.atomic():
         obj, created = FrecuenciaFija.objects.update_or_create(
-            usuario=request.user,
+            usuario_id=usuario.id_usuario,
             defaults={'frecuencia': freq}
         )
 

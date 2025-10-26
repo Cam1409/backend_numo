@@ -17,6 +17,10 @@ class Usuario(models.Model):
 
     def __str__(self):
         return f'{self.nombre} {self.apellido}'
+    
+    @property
+    def is_authenticated(self):
+        return True
 
 class Credencial(models.Model):
     id_credencial = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
