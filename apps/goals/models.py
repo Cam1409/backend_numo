@@ -14,6 +14,7 @@ class Objetivo(models.Model):
     monto_meta = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
     fecha_objetivo = models.DateField(null=True, blank=True)
     estado = models.CharField(max_length=20, choices=Estado.choices, default=Estado.EN_PROGRESO)
+    horizonte = models.IntegerField('horizonte(meses)', null=True, blank=True)
 
     class Meta:
         db_table = 'Objetivo'
