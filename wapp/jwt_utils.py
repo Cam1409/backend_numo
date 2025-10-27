@@ -2,12 +2,13 @@ import jwt
 from datetime import datetime, timedelta, timezone
 from django.conf import settings
 
-def make_access_token(user_id: int, email: str) -> str:
+def make_access_token(user_id: int, email: str, name: str) -> str:
     exp_minutes = getattr(settings, "JWT_ACCESS_MINUTES", 60)
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
         "email": email,
+        "name": name,
         "type": "access",
         "iat": int(now.timestamp()),
         "exp": int((now + timedelta(minutes=exp_minutes)).timestamp()),

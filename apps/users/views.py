@@ -9,13 +9,19 @@ from apps.users.serializers import UsuarioSerializer
 from wapp.jwt_utils import make_access_token, make_refresh_token
 from rest_framework.decorators import api_view, permission_classes
 from django.db import transaction
-
+from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     permission_classes = [AllowAny]
 
+# solo usuarios autenticados pueden acceder
+@action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+def me(self, request):
+    serializer = self.get_serializer(request.user)
+    return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -48,7 +54,7 @@ def login_usuario(request):
     if not check_password(password, hashed):
         return Response({'error': 'Contraseña incorrecta.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    access = make_access_token(str(usuario.id_usuario), usuario.correo)
+    access = make_access_token(str(usuario.id_usuario), usuario.correo, usuario.nombre)
     refresh = make_refresh_token(str(usuario.id_usuario))
 
     # data = UsuarioSerializer(usuario).data  # si quieres enviar info del usuario
@@ -100,7 +106,7 @@ def registrar_usuario(request):
     )
 
     # Generar y devolver tokens igual que en login
-    access = make_access_token(str(usuario.id_usuario), usuario.correo)
+    access = make_access_token(str(usuario.id_usuario), usuario.correo, usuario.nombre)
     refresh = make_refresh_token(str(usuario.id_usuario))
     # data = UsuarioSerializer(usuario).data
 

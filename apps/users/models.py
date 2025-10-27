@@ -14,6 +14,7 @@ class Usuario(models.Model):
 
     class Meta:
         db_table = 'Usuario'
+        ordering = ["-fecha_registro"]
 
     def __str__(self):
         return f'{self.nombre} {self.apellido}'

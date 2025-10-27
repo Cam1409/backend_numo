@@ -18,7 +18,7 @@ class ReglaDetalle(models.Model):
     usuario = models.ForeignKey('users.Usuario', on_delete=models.CASCADE, null=True, blank=True, related_name='reglas')
     observacion = models.CharField(max_length=200,null=True, blank=True)
     activa = models.BooleanField(default=True, )
-    valor = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
+    valor = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10, default=True)
 
     class Meta:
         db_table = 'ReglaDetalle'
