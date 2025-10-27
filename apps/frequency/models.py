@@ -21,7 +21,7 @@ class FrecuenciaFija(models.Model):
     )
     # catálogo de frecuencias (DIARIO/SEMANAL/QUINCENAL/MENSUAL)
     frecuencia = models.ForeignKey(
-        Frecuencia, on_delete=models.PROTECT, related_name='usuarios_frecuencia_fija'
+        Frecuencia, on_delete=models.PROTECT, related_name='usuarios_frecuencia_fija', null=True, blank=True
     )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)

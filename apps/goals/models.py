@@ -21,3 +21,12 @@ class Objetivo(models.Model):
 
     def __str__(self):
         return self.nombre
+
+class DetalleObjetivo(models.Model):
+    idDetObjt =  models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    monto = models.DecimalField(max_digits=12, decimal_places=2, validators=[MinValueValidator(0)])
+    fecha = models.DateField(null=True, blank=True)
+    observacion = models.TextField(null=True, blank=True)
+
+    class Meta:
+        db_table = 'DetalleObjetivo'

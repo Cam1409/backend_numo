@@ -1,6 +1,7 @@
 from django.db import models
 import uuid
 
+
 class Evaluacion(models.Model):
     class Tipo(models.TextChoices):
         PRE  = 'PRE', 'Pre'

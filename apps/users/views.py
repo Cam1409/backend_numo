@@ -1,100 +1,115 @@
-from django.contrib.auth.hashers import check_password, make_password
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
-from rest_framework import status
-from django.contrib.auth.hashers import check_password
+from rest_framework import status, viewsets
+from rest_framework.permissions import AllowAny
+from django.contrib.auth.hashers import check_password, make_password
 
-from apps.users.models import Usuario, Credencial  # ajusta import
+from apps.users.models import Usuario, Credencial
 from apps.users.serializers import UsuarioSerializer
-from wapp.jwt_utils import make_access_token, make_refresh_token  # ajusta import
+from wapp.jwt_utils import make_access_token, make_refresh_token
+from rest_framework.decorators import api_view, permission_classes
+from django.db import transaction
 
-from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
-    permission_classes = [IsAuthenticated]
+    permission_classes = [AllowAny]
+
 
 @api_view(['POST'])
+@permission_classes([AllowAny])
 def login_usuario(request):
-    email = request.data.get('email')
-    password = request.data.get('password')
-    print(request)
+    """
+    Login con email y password. Devuelve tokens (access, refresh).
+    """
+    email = (request.data.get('email') or '').strip().lower()
+    password = (request.data.get('password') or '').strip()
 
     if not email or not password:
-        print('1')
         return Response({'error': 'Faltan credenciales.'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
-        print('2')
         usuario = Usuario.objects.get(correo=email)
     except Usuario.DoesNotExist:
         return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
     try:
-        print('3')
         credencial = Credencial.objects.get(usuario=usuario)
     except Credencial.DoesNotExist:
         return Response({'error': 'Credencial no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
-    # hash_password es BinaryField => decodificamos a str para check_password
-    hashed = credencial.hash_password.decode() if isinstance(credencial.hash_password, (bytes, bytearray)) else credencial.hash_password
+    hashed = (
+        credencial.hash_password.decode()
+        if isinstance(credencial.hash_password, (bytes, bytearray))
+        else credencial.hash_password
+    )
 
     if not check_password(password, hashed):
         return Response({'error': 'Contraseña incorrecta.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-    # ✅ Credenciales correctas -> emitir JWT
-    access = make_access_token(usuario.id, usuario.correo)
-    refresh = make_refresh_token(usuario.id)
+    access = make_access_token(str(usuario.id_usuario), usuario.correo)
+    refresh = make_refresh_token(str(usuario.id_usuario))
 
-    data = UsuarioSerializer(usuario).data
-    # Opción A: devolver en cuerpo (Bearer en header del cliente)
+    # data = UsuarioSerializer(usuario).data  # si quieres enviar info del usuario
     return Response(
         {
-            'usuario': data,
+            # 'usuario': data,
             'access': access,
-            'refresh': refresh
+            'refresh': refresh,
+            'message': 'Login exitoso.'
         },
         status=status.HTTP_200_OK
     )
 
 
-#Endpoint para crear un usario 
-
 @api_view(['POST'])
+@permission_classes([AllowAny])
+@transaction.atomic
 def registrar_usuario(request):
-    nombre = request.data.get('nombre', '').strip()
-    apellido = request.data.get('apellido', '').strip()
-    dni = request.data.get('dni', '').strip()
-    numero_tel = request.data.get('numero_tel', '').strip()
-    correo = request.data.get('correo', '').strip().lower()
-    password = request.data.get('password', '')
+    """
+    Registra usuario + credencial y retorna tokens como el login.
+    """
+    campos = ['nombre', 'apellido', 'dni', 'numero_tel', 'correo', 'password']
+    datos = {c: (request.data.get(c) or '').strip() for c in campos}
 
-    if not (nombre and apellido and dni and numero_tel and correo and password):
+    if not all(datos.values()):
         return Response({'error': 'Faltan campos.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # valida unicidad del correo
+    correo = datos['correo'].lower()
+
     if Usuario.objects.filter(correo=correo).exists():
         return Response({'error': 'El correo ya está registrado.'}, status=status.HTTP_400_BAD_REQUEST)
 
-    # crea usuario
+    # Crear usuario
     usuario = Usuario.objects.create(
-        nombre=nombre,
-        apellido=apellido,
-        dni=dni,
-        numero_tel=numero_tel,
+        nombre=datos['nombre'],
+        apellido=datos['apellido'],
+        dni=datos['dni'],
+        numero_tel=datos['numero_tel'],
         correo=correo,
     )
 
-    # hashea y guarda credencial (tu modelo usa BinaryField)
-    hashed = make_password(password)  # str
+    # Crear credencial
+    hashed_password = make_password(datos['password'])
     Credencial.objects.create(
         usuario=usuario,
         email_login=correo,
-        hash_password=hashed.encode('utf-8'),  # -> bytes
-        salt=b'',
+        hash_password=hashed_password,
+        salt=b'',  # si no usas salt manual, puedes quitar este campo del modelo
     )
 
-    data = UsuarioSerializer(usuario).data
-    return Response({'usuario': data}, status=status.HTTP_201_CREATED)
+    # Generar y devolver tokens igual que en login
+    access = make_access_token(str(usuario.id_usuario), usuario.correo)
+    refresh = make_refresh_token(str(usuario.id_usuario))
+    # data = UsuarioSerializer(usuario).data
+
+    return Response(
+        {
+            # 'usuario': data,
+            'access': access,
+            'refresh': refresh,
+            'message': 'Usuario registrado y sesión iniciada.'
+        },
+        status=status.HTTP_201_CREATED
+    )

@@ -30,7 +30,8 @@ class JWTAuthentication(BaseAuthentication):
             raise exceptions.AuthenticationFailed("Token sin sujeto.")
 
         try:
-            usuario = Usuario.objects.get(id=user_id)
+            usuario = Usuario.objects.get(id_usuario=user_id)
+
         except Usuario.DoesNotExist:
             raise exceptions.AuthenticationFailed("Usuario no existe.")
 

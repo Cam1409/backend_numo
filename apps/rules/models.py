@@ -3,7 +3,6 @@ import uuid
 
 class Regla(models.Model):
     id_regla = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    usuario = models.ForeignKey('users.Usuario', on_delete=models.CASCADE, null=True, blank=True, related_name='reglas')
     descripcion = models.CharField(max_length=200)
     activa = models.BooleanField(default=True)
 
@@ -16,8 +15,10 @@ class Regla(models.Model):
 class ReglaDetalle(models.Model):
     id_regla_detalle = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     regla = models.ForeignKey('rules.Regla', on_delete=models.CASCADE, related_name='detalles')
-    parametro = models.CharField(max_length=80)
-    valor = models.CharField(max_length=120)
+    usuario = models.ForeignKey('users.Usuario', on_delete=models.CASCADE, null=True, blank=True, related_name='reglas')
+    observacion = models.CharField(max_length=200,null=True, blank=True)
+    activa = models.BooleanField(default=True, )
+    valor = models.DecimalField(null=True, blank=True, decimal_places=2, max_digits=10)
 
     class Meta:
         db_table = 'ReglaDetalle'
