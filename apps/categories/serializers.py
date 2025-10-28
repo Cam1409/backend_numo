@@ -8,5 +8,11 @@ class CategoriaSerializer(serializers.ModelSerializer):
 
 class CategoriUsuarioSerializer(serializers.ModelSerializer):
     class Meta:
-        model = CategoriUsuario 
-        fields = "__all__"
+        model = CategoriUsuario
+        fields = "__all__"  # incluye 'categoria' como FK (writable)
+
+    def to_representation(self, instance):
+        rep = super().to_representation(instance)
+        # Reemplaza el id por el nombre en la respuesta
+        rep['categoria'] = instance.categoria.nombre if instance.categoria else None
+        return rep

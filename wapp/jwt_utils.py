@@ -3,7 +3,7 @@ from datetime import datetime, timedelta, timezone
 from django.conf import settings
 
 def make_access_token(user_id: int, email: str, name: str) -> str:
-    exp_minutes = getattr(settings, "JWT_ACCESS_MINUTES", 60)
+    exp_minutes = getattr(settings, "JWT_ACCESS_MINUTES", 1440)
     now = datetime.now(timezone.utc)
     payload = {
         "sub": user_id,
