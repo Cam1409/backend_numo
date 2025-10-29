@@ -18,11 +18,17 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
     
 
-# solo usuarios autenticados pueden acceder
-    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    # solo usuarios autenticados pueden acceder
+    @action(detail=False, methods=['get', 'patch'], permission_classes=[IsAuthenticated])
     def me(self, request):
-        serializer = self.get_serializer(request.user)
-        return Response(serializer.data)
+        if request.method == 'GET':
+            serializer = self.get_serializer(request.user)
+            return Response(serializer.data)
+        elif request.method == 'PATCH':
+            serializer = self.get_serializer(request.user, data=request.data, partial=True)
+            serializer.is_valid(raise_exception=True)
+            serializer.save()
+            return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
