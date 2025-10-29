@@ -54,7 +54,7 @@ class ReglaDetalleViewset(viewsets.ModelViewSet):
         include_global = self.request.query_params.get('include_global')
         if include_global and include_global.lower() in ('true', '1'):
             qs = ReglaDetalle.objects.filter(Q(usuario=user) | Q(usuario__isnull=True))
-
+        
         # filtro por regla
         regla_id = self.request.query_params.get('regla')
         if regla_id:

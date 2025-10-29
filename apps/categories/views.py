@@ -25,6 +25,20 @@ class CategoriUsuarioViewset(viewsets.ModelViewSet):
     serializer_class = CategoriUsuarioSerializer
     permission_classes = [IsAuthenticated]  # 👈 requiere token válido
 
+    def get_queryset(self):
+        """
+        Filtra las categorías por el usuario autenticado y, opcionalmente, por tipo_categoria.
+        """
+        usuario = self.request.user
+        queryset = CategoriUsuario.objects.filter(usuario=usuario.id_usuario)
+
+        # 🧩 Si viene el parámetro ?tipo_categoria=INGRESO, filtra adicionalmente
+        tipo_categoria = self.request.query_params.get('tipo_categoria')
+        if tipo_categoria:
+            queryset = queryset.filter(categoria__tipo_categoria=tipo_categoria)
+
+        return queryset
+
     def create(self, request, *args, **kwargs):
         """
         Crea una categoría de usuario tomando el usuario autenticado del token.
