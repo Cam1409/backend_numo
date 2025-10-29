@@ -16,12 +16,13 @@ class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
     serializer_class = UsuarioSerializer
     permission_classes = [AllowAny]
+    
 
 # solo usuarios autenticados pueden acceder
-@action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
-def me(self, request):
-    serializer = self.get_serializer(request.user)
-    return Response(serializer.data)
+    @action(detail=False, methods=['get'], permission_classes=[IsAuthenticated])
+    def me(self, request):
+        serializer = self.get_serializer(request.user)
+        return Response(serializer.data)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -119,3 +120,5 @@ def registrar_usuario(request):
         },
         status=status.HTTP_201_CREATED
     )
+
+    
