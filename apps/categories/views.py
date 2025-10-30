@@ -1,8 +1,8 @@
 from django.shortcuts import render
 from rest_framework import viewsets
-
+from rest_framework.decorators import action
 from apps.categories.models import CategoriUsuario, Categoria
-from apps.categories.serializers import CategoriUsuarioSerializer, CategoriaSerializer
+from apps.categories.serializers import CategoriUsuarioSerializer, CategoriaSerializer, ResumenSemanalSerializer
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, status
 from rest_framework.response import Response
@@ -39,6 +39,29 @@ class CategoriUsuarioViewset(viewsets.ModelViewSet):
 
         return queryset
 
+    @action(detail=False, methods=["get"], url_path="resumen-semanal")
+    def resumen_semanal(self, request):
+        """Devuelve el resumen semanal del usuario autenticado."""
+        usuario = request.user
+
+        # Pasamos un objeto falso con atributo usuario, ya que el serializer lo espera como obj.usuario
+        dummy_obj = type("obj", (), {"usuario": usuario})()
+
+        serializer = ResumenSemanalSerializer(dummy_obj)
+        data = {
+            "total_gastos": serializer.get_total_gastos(dummy_obj),
+            "dia_mayor_gasto": serializer.get_dia_mayor_gasto(dummy_obj),
+            "ultimo_ingreso_semana": serializer.get_ultimo_ingreso_semana(dummy_obj),
+            "dia_ultimo_ingreso": serializer.get_dia_ultimo_ingreso(dummy_obj),
+            "categoria_mayor_gasto_dia": serializer.get_categoria_mayor_gasto_dia(dummy_obj),
+            "categoria_menor_gasto_dia": serializer.get_categoria_menor_gasto_dia(dummy_obj),
+            "ultimo_gasto_dia": serializer.get_ultimo_gasto_dia(dummy_obj),
+            "ultimo_ingreso_dia": serializer.get_ultimo_ingreso_dia(dummy_obj),
+            "gasto_categoria": serializer.get_gasto_categoria(dummy_obj)
+        }
+
+        return Response(data, status=status.HTTP_200_OK)
+    
     def create(self, request, *args, **kwargs):
         """
         Crea una categoría de usuario tomando el usuario autenticado del token.
