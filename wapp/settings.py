@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django_filters',
     'corsheaders',
     'apps.frequency.apps.FrequencyConfig',
+    'apps.tarea',
 ]
 
 MIDDLEWARE = [   
