@@ -6,7 +6,10 @@ class ReglaDetalleAdmin(admin.ModelAdmin):
     list_display = (
         "regla",
         "usuario",
-    )
+
+    ) 
+    list_filter=("usuario",)
+
 
 
 admin.site.register(Regla)
