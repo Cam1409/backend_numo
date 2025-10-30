@@ -10,6 +10,7 @@ from apps.frequency.views import (
 )
 from apps.goals.views import ObjetivoViewset, DetalleObjetivoViewset
 from apps.rules.views import ReglaViewset, ReglaDetalleViewset
+from apps.tarea.views import TareaViewset
 
 router = routers.DefaultRouter()
 router.register(r'usuarios', UsuarioViewSet, basename='usuarios')
@@ -19,6 +20,7 @@ router.register(r'objetivos', ObjetivoViewset, basename='objetivos')
 router.register(r'detalles-objetivo', DetalleObjetivoViewset, basename='detalles-objetivo')
 router.register(r'reglas', ReglaViewset, basename='reglas')
 router.register(r'reglas-detalle', ReglaDetalleViewset, basename='reglas-detalle')
+router.register(r'tarea', TareaViewset, basename="tarea")
 
 urlpatterns = [
     path('admin/', admin.site.urls),

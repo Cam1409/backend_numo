@@ -2,6 +2,7 @@ from django.db import models
 import uuid
 from apps.categories.choices import TipoCategoriaChoices
 from apps.frequency.models import Frecuencia
+from apps.tarea.models import Tarea
 
 
 class Categoria(models.Model):
@@ -37,6 +38,7 @@ class CategoriUsuario(models.Model):
     monto = models.FloatField(null=True, blank=True)
     descripcion = models.CharField(max_length=200, null=True, blank=True)
     fecha = models.DateTimeField(null=True, blank=True)
+    tarea = models.ForeignKey(Tarea, on_delete=models.CASCADE, null=True, blank=True)
 
     class Meta:
         db_table = "CategoriUsuario"
