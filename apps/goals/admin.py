@@ -7,6 +7,6 @@ class ObjetivoAdmin(admin.ModelAdmin):
         "usuario",
         "nombre",
     )
-
+    list_filter= ["usuario"]
 
 admin.site.register(Objetivo, ObjetivoAdmin)

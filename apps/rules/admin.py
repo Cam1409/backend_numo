@@ -8,7 +8,7 @@ class ReglaDetalleAdmin(admin.ModelAdmin):
         "usuario",
 
     ) 
-    list_filter=("usuario",)
+    list_filter= ["usuario"]
 
 
 

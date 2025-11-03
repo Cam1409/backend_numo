@@ -1,4 +1,8 @@
 from django.contrib import admin
 from .models import Tarea
 
-admin.site.register(Tarea)
+class TareaU(admin.ModelAdmin):
+    list_display=("usuario", "nombre", "fechaProgramada", "fechaEjecutada")
+    list_filter= ["usuario"]
+
+admin.site.register(Tarea, TareaU)
