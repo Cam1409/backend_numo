@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'apps.frequency.apps.FrequencyConfig',
     'apps.tarea',
+    'apps.resultados',
 ]
 
 MIDDLEWARE = [   

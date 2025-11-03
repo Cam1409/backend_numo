@@ -16,30 +16,26 @@ class TareaViewset(viewsets.ModelViewSet):
         Retorna solo las tareas del usuario autenticado.
         Permite filtrar por estado: ?estado=PENDIENTE
         """
+        print('entre')
         usuario = self.request.user
         queryset = Tarea.objects.filter(usuario=usuario.id_usuario)
+        print(usuario.id_usuario)
+        print(queryset)
 
         estado = self.request.query_params.get('estado')
         if estado:
             queryset = queryset.filter(estado=estado)
 
         return queryset
-
     def create(self, request, *args, **kwargs):
-        """
-        Crea una tarea asignando el usuario autenticado desde el token.
-        """
-        usuario = request.user
-
-        if not usuario:
-            return Response({'error': 'No autorizado.'}, status=status.HTTP_401_UNAUTHORIZED)
-
-        data = request.data.copy()
-        data['usuario'] = usuario.id_usuario  # inyectamos el usuario automáticamente
-
-        serializer = self.get_serializer(data=data)
+        serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        serializer.save()
 
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+        # ✅ Asigna usuario en save (no en data)
+        instance = serializer.save(usuario_id=request.user.id_usuario)
+
+        # ✅ Re-serializa la instancia para asegurar que venga 'usuario'
+        out = self.get_serializer(instance)
+        return Response(out.data, status=status.HTTP_201_CREATED)
+
 
