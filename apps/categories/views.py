@@ -6,6 +6,10 @@ from apps.categories.serializers import CategoriUsuarioSerializer, CategoriaSeri
 from rest_framework.permissions import IsAuthenticated
 from rest_framework import viewsets, status
 from rest_framework.response import Response
+from apps.tarea.models import Tarea
+from django.db import transaction
+from datetime import date
+from apps.tarea.choices import TipoEstado
 
 class CategoriaViewset(viewsets.ModelViewSet):
     
@@ -38,6 +42,14 @@ class CategoriUsuarioViewset(viewsets.ModelViewSet):
             queryset = queryset.filter(categoria__tipo_categoria=tipo_categoria)
 
         return queryset
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        # Asegura pertenencia y tipo
+        if instance.usuario_id != request.user.id_usuario:
+            return Response({'detail': 'Forbidden'}, status=status.HTTP_403_FORBIDDEN)
+        if instance.categoria and instance.categoria.tipo_categoria != 'Gasto_Fijo':
+            return Response({'detail': 'Solo se permiten gastos fijos.'}, status=status.HTTP_400_BAD_REQUEST)
+        return super().partial_update(request, *args, **kwargs)
 
     @action(detail=False, methods=["get"], url_path="resumen-semanal")
     def resumen_semanal(self, request):
@@ -64,21 +76,44 @@ class CategoriUsuarioViewset(viewsets.ModelViewSet):
     
     def create(self, request, *args, **kwargs):
         """
-        Crea una categoría de usuario tomando el usuario autenticado del token.
+        Crea una categoría de usuario con el usuario autenticado.
+        Si el cuerpo trae 'tarea' o 'idTarea', se actualiza fechaEjecutada = hoy
+        en la tarea que pertenezca al mismo usuario.
         """
-        usuario = request.user  # viene del token JWT (DRF decodifica automáticamente)
-        print(usuario)
-
-        # 🔒 Verifica que el usuario venga autenticado
-        if not usuario :
+        usuario = request.user
+        if not usuario:
             return Response({'error': 'No autorizado.'}, status=status.HTTP_401_UNAUTHORIZED)
 
-        # 👇 Crea el objeto usando los datos del request y el usuario del token
         data = request.data.copy()
-        data['usuario'] = usuario.id_usuario  # inyectamos el id del usuario autenticado
+        data['usuario'] = usuario.id_usuario  # ✅ conserva la funcionalidad original
 
-        serializer = self.get_serializer(data=data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
+        # Tomamos el id de tarea si llega
+        tarea_id = request.data.get('tarea') or request.data.get('idTarea')
+
+        with transaction.atomic():
+            # 1) Crear CategoriUsuario (funcionalidad original)
+            serializer = self.get_serializer(data=data)
+            serializer.is_valid(raise_exception=True)
+            instance = serializer.save()
+
+            # 2) Si llegó tarea, actualizar fechaEjecutada = hoy
+            if tarea_id:
+                try:
+                    # Asegurar que la tarea exista y sea del mismo usuario
+                    tarea = (
+                        Tarea.objects
+                        .select_for_update()
+                        .get(idTarea=tarea_id, usuario=usuario)
+                    )
+                    if not tarea.fechaEjecutada:
+                        tarea.fechaEjecutada = date.today()
+                        tarea.save(update_fields=['fechaEjecutada'])
+                        tarea.estado=TipoEstado.REALIZADO
+                        tarea.save(update_fields=['estado'])
+                except Tarea.DoesNotExist:
+                    return Response(
+                        {'error': 'La tarea no existe o no pertenece al usuario autenticado.'},
+                        status=status.HTTP_400_BAD_REQUEST
+                    )
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
