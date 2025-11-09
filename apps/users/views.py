@@ -38,25 +38,24 @@ def login_usuario(request):
     """
     email = (request.data.get('email') or '').strip().lower()
     password = (request.data.get('password') or '').strip()
-
+    print(email)
+    print(password)
     if not email or not password:
         return Response({'error': 'Faltan credenciales.'}, status=status.HTTP_400_BAD_REQUEST)
 
     try:
         usuario = Usuario.objects.get(correo=email)
+        print(usuario)
     except Usuario.DoesNotExist:
         return Response({'error': 'Usuario no encontrado.'}, status=status.HTTP_404_NOT_FOUND)
 
     try:
         credencial = Credencial.objects.get(usuario=usuario)
+        print(credencial)
     except Credencial.DoesNotExist:
         return Response({'error': 'Credencial no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
-    hashed = (
-        credencial.hash_password.decode()
-        if isinstance(credencial.hash_password, (bytes, bytearray))
-        else credencial.hash_password
-    )
+    hashed = credencial.hash_password
 
     if not check_password(password, hashed):
         return Response({'error': 'Contraseña incorrecta.'}, status=status.HTTP_401_UNAUTHORIZED)

@@ -28,13 +28,13 @@ class Credencial(models.Model):
     # misma app => nombre simple
     usuario       = models.OneToOneField('Usuario', on_delete=models.CASCADE, related_name='credencial')
     email_login   = models.EmailField(max_length=150, unique=True)
-    hash_password = models.BinaryField(max_length=512)
+    hash_password = models.CharField(max_length=512)
     salt          = models.BinaryField(max_length=128)
     ultimo_acceso = models.DateTimeField(null=True, blank=True)
 
     def save(self, *args, **kwargs):
-        if isinstance(self.hash_password, str):
-            self.hash_password = make_password(self.hash_password).encode()
+        if isinstance(self.hash_password, str) and not self.hash_password.startswith("pbkdf2_"):
+            self.hash_password = make_password(self.hash_password)
         super().save(*args, **kwargs)
         
     class Meta:
