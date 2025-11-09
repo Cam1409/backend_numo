@@ -25,7 +25,6 @@ class Usuario(models.Model):
 
 class Credencial(models.Model):
     id_credencial = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    # misma app => nombre simple
     usuario       = models.OneToOneField('Usuario', on_delete=models.CASCADE, related_name='credencial')
     email_login   = models.EmailField(max_length=150, unique=True)
     hash_password = models.CharField(max_length=512)
