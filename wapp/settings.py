@@ -28,7 +28,7 @@ SECRET_KEY = 'django-insecure-g-!*q)m+76kb7r$42o1wqzb#olb2k@l5t^n**o2)-u$)jh4mm^
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['backend-numo.onrender.com']
 
 
 # Application definition
@@ -146,6 +146,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://app-finanzas-ten.vercel.app"
 ]
 CORS_ALLOW_CREDENTIALS = True
 
