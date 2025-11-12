@@ -26,9 +26,9 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-g-!*q)m+76kb7r$42o1wqzb#olb2k@l5t^n**o2)-u$)jh4mm^'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ['backend-numo.onrender.com']
+ALLOWED_HOSTS = ['backend-numo.onrender.com', '127.0.0.1']
 
 
 # Application definition
@@ -61,6 +61,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [   
     'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -68,7 +69,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     
+    
 ]
+
+CSRF_TRUSTED_ORIGINS = ['https://backend-numo.onrender.com', 'https://app-finanzas-ten.vercel.app'] 
 
 ROOT_URLCONF = 'wapp.urls'
 
