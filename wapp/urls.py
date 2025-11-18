@@ -11,6 +11,11 @@ from apps.frequency.views import (
 from apps.goals.views import ObjetivoViewset, DetalleObjetivoViewset
 from apps.rules.views import ReglaViewset, ReglaDetalleViewset
 from apps.tarea.views import TareaViewset
+from apps.users.views import (
+    enviar_codigo_reset,
+    verificar_codigo_reset,
+    actualizar_password
+)
 
 router = routers.DefaultRouter()
 router.register(r'usuarios', UsuarioViewSet, basename='usuarios')
@@ -26,15 +31,15 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include(router.urls)),
 
-    # usuarios
     path('api/registrar/', registrar_usuario, name='registrar_usuario'),
     path('api/login/', login_usuario, name='login_usuario'),
 
-    # frequency
-    path('frecuencias/', listar_frecuencias),          # GET
-    path('frecuencia-fija/', set_frecuencia_fija),     # POST/PUT  (requiere auth)
-    path('frecuencia-fija/mia/', mi_frecuencia_fija),  # GET       (requiere auth)
-
+    path('frecuencias/', listar_frecuencias),         
+    path('frecuencia-fija/', set_frecuencia_fija),     
+    path('frecuencia-fija/mia/', mi_frecuencia_fija),  
    
+    path('api/reset/enviar-codigo/', enviar_codigo_reset, name='enviar_codigo_reset'),
+    path('api/reset/verificar-codigo/', verificar_codigo_reset, name='verificar_codigo_reset'),
+    path('api/reset/actualizar-password/', actualizar_password, name='actualizar_password'),
 ]
 

@@ -9,7 +9,7 @@ class CredencialInline(admin.StackedInline):
 
 @admin.register(Usuario)
 class UsuarioAdmin(admin.ModelAdmin):
-    list_display = ('nombre', 'apellido', 'correo', 'dni', 'activo')
+    list_display = ('nombre', 'apellido', 'dni','correo', 'activo')
     search_fields = ('nombre', 'apellido', 'correo', 'dni')  # ← REQUERIDO
     inlines = [CredencialInline]
 

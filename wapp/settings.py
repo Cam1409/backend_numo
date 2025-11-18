@@ -158,3 +158,12 @@ REST_FRAMEWORK = {
 
 JWT_ACCESS_MINUTES = 60          # 1 hora
 JWT_REFRESH_DAYS = 7             # 7 días
+
+EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
+EMAIL_HOST = "smtp.gmail.com"
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = "gnolbertosa@ucvvirtual.edu.pe"
+EMAIL_HOST_PASSWORD = "kguw qtoc zrpd mwfi"  # 16 caracteres
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+

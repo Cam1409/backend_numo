@@ -11,6 +11,14 @@ from rest_framework.decorators import api_view, permission_classes
 from django.db import transaction
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
+import random
+from django.core.mail import send_mail
+from apps.users.models import CodigoRecuperacion
+from django.utils import timezone
+from django.utils import timezone
+from django.core.mail import send_mail
+from datetime import timedelta
+from apps.users.models import PasswordResetCode
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -127,4 +135,171 @@ def registrar_usuario(request):
         status=status.HTTP_201_CREATED
     )
 
-    
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def enviar_codigo_recuperacion(request):
+    email = (request.data.get("email") or "").strip().lower()
+
+    if not email:
+        return Response({"error": "Debe ingresar un correo"}, status=400)
+
+    try:
+        usuario = Usuario.objects.get(correo=email)
+    except Usuario.DoesNotExist:
+        return Response({"error": "El correo no está registrado."}, status=404)
+
+    # Generar código de 6 dígitos
+    codigo = str(random.randint(100000, 999999))
+
+    # Guardar en BD
+    CodigoRecuperacion.objects.create(usuario=usuario, codigo=codigo)
+
+    # Enviar correo
+    send_mail(
+        subject="Código de Recuperación de Contraseña",
+        message=f"Tu código de verificación es: {codigo}",
+        from_email="tucorreo@gmail.com",     # Cambia esto por tu Gmail
+        recipient_list=[email],
+        fail_silently=False
+    )
+
+    return Response({"message": "Código enviado correctamente."}, status=200)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verificar_codigo_recuperacion(request):
+    email = (request.data.get("email") or "").strip().lower()
+    codigo = (request.data.get("codigo") or "").strip()
+
+    try:
+        usuario = Usuario.objects.get(correo=email)
+    except Usuario.DoesNotExist:
+        return Response({"error": "Correo no válido."}, status=404)
+
+    try:
+        registro = CodigoRecuperacion.objects.filter(
+            usuario=usuario,
+            codigo=codigo,
+            usado=False
+        ).latest('creado')
+    except CodigoRecuperacion.DoesNotExist:
+        return Response({"error": "Código incorrecto."}, status=400)
+
+    # Verificar expiración
+    if timezone.now() > registro.expiracion:
+        return Response({"error": "El código expiró."}, status=400)
+
+    # Marcar como usado
+    registro.usado = True
+    registro.save()
+
+    return Response({"message": "Código verificado correctamente."}, status=200)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def actualizar_password(request):
+    email = (request.data.get("email") or "").strip().lower()
+    new_password = (request.data.get("password") or "")
+
+    if len(new_password) < 8:
+        return Response({"error": "La contraseña debe tener mínimo 8 caracteres."}, status=400)
+
+    try:
+        usuario = Usuario.objects.get(correo=email)
+        credencial = Credencial.objects.get(usuario=usuario)
+    except:
+        return Response({"error": "Correo no válido."}, status=404)
+
+    # Reemplazar contraseña
+    hashed = make_password(new_password)
+    credencial.hash_password = hashed.encode()
+    credencial.save()
+
+    return Response({"message": "Contraseña actualizada correctamente."}, status=200)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def enviar_codigo_reset(request):
+    email = (request.data.get("correo") or "").strip().lower()
+
+    if not email:
+        return Response({"error": "El correo es obligatorio."}, status=400)
+
+    try:
+        usuario = Usuario.objects.get(correo=email)
+    except Usuario.DoesNotExist:
+        return Response({"error": "El correo no está registrado."}, status=404)
+
+    # Crear código de 6 dígitos
+    codigo = str(random.randint(100000, 999999))
+
+    PasswordResetCode.objects.create(usuario=usuario, codigo=codigo)
+
+    # Enviar Gmail
+    send_mail(
+        subject="Código de recuperación",
+        message=f"Tu código de recuperación es: {codigo}",
+        from_email=None,
+        recipient_list=[email],
+        fail_silently=False,
+    )
+
+    return Response({"message": "Código enviado al correo."}, status=200)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verificar_codigo_reset(request):
+    email = (request.data.get("correo") or "").strip().lower()
+    codigo = (request.data.get("codigo") or "").strip()
+
+    try:
+        usuario = Usuario.objects.get(correo=email)
+    except Usuario.DoesNotExist:
+        return Response({"error": "Correo no válido."}, status=404)
+
+    # buscar un código válido (no usado y menos de 10 min)
+    limite = timezone.now() - timedelta(minutes=10)
+
+    try:
+        reset = PasswordResetCode.objects.filter(
+            usuario=usuario,
+            codigo=codigo,
+            usado=False,
+            creado_en__gte=limite
+        ).latest("creado_en")
+    except PasswordResetCode.DoesNotExist:
+        return Response({"error": "Código incorrecto o expirado."}, status=400)
+
+    return Response({"message": "Código correcto."}, status=200)
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def actualizar_password(request):
+    email = (request.data.get("correo") or "").strip().lower()
+    codigo = (request.data.get("codigo") or "").strip()
+    nueva_password = request.data.get("password")
+
+    if not nueva_password:
+        return Response({"error": "Debe ingresar una nueva contraseña."}, status=400)
+
+    try:
+        usuario = Usuario.objects.get(correo=email)
+    except Usuario.DoesNotExist:
+        return Response({"error": "Correo no válido."}, status=404)
+
+    limite = timezone.now() - timedelta(minutes=10)
+
+    try:
+        reset = PasswordResetCode.objects.filter(
+            usuario=usuario,
+            codigo=codigo,
+            usado=False,
+            creado_en__gte=limite
+        ).latest("creado_en")
+    except PasswordResetCode.DoesNotExist:
+        return Response({"error": "Código incorrecto o expirado."}, status=400)
+
+    # actualizar contraseña
+    cred = Credencial.objects.get(usuario=usuario)
+    cred.hash_password = make_password(nueva_password)
+    cred.save()
+
+    reset.usado = True
+    reset.save()
+
+    return Response({"message": "Contraseña actualizada correctamente."}, status=200)

@@ -1,6 +1,8 @@
 from django.db import models
 import uuid
 from django.contrib.auth.hashers import check_password, make_password
+from django.utils import timezone
+from datetime import timedelta
 
 class Usuario(models.Model):
     id_usuario   = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
@@ -40,3 +42,28 @@ class Credencial(models.Model):
     class Meta:
         db_table = 'Credencial'
 
+class CodigoRecuperacion(models.Model):
+    id_codigo = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE, related_name="codigos_recuperacion")
+
+    codigo = models.CharField(max_length=6)
+    creado = models.DateTimeField(default=timezone.now)
+    expiracion = models.DateTimeField()
+    usado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = "CodigoRecuperacion"
+
+    def save(self, *args, **kwargs):
+        if not self.expiracion:
+            self.expiracion = timezone.now() + timedelta(minutes=10)
+        super().save(*args, **kwargs)
+
+class PasswordResetCode(models.Model):
+    usuario = models.ForeignKey(Usuario, on_delete=models.CASCADE)
+    codigo = models.CharField(max_length=6)
+    creado_en = models.DateTimeField(auto_now_add=True)
+    usado = models.BooleanField(default=False)
+
+    class Meta:
+        db_table = 'PasswordResetCode'
