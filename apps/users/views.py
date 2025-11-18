@@ -60,11 +60,7 @@ def login_usuario(request):
     except Credencial.DoesNotExist:
         return Response({'error': 'Credencial no encontrada.'}, status=status.HTTP_404_NOT_FOUND)
 
-    hashed = (
-        credencial.hash_password.decode()
-        if isinstance(credencial.hash_password, (bytes, bytearray))
-        else credencial.hash_password
-    )
+    hashed = credencial.hash_password
 
     if not check_password(password, hashed):
         return Response({'error': 'Contraseña incorrecta.'}, status=status.HTTP_401_UNAUTHORIZED)
@@ -72,10 +68,8 @@ def login_usuario(request):
     access = make_access_token(str(usuario.id_usuario), usuario.correo, usuario.nombre)
     refresh = make_refresh_token(str(usuario.id_usuario))
 
-    # data = UsuarioSerializer(usuario).data  # si quieres enviar info del usuario
     return Response(
         {
-            # 'usuario': data,
             'access': access,
             'refresh': refresh,
             'message': 'Login exitoso.'
