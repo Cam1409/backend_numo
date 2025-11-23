@@ -72,7 +72,7 @@ MIDDLEWARE = [
     
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://backend-numo.onrender.com', 'https://app-finanzas-ten.vercel.app'] 
+CSRF_TRUSTED_ORIGINS = ['https://backend-numo.onrender.com', 'https://app-finanzas-e6vm.vercel.app'] 
 
 ROOT_URLCONF = 'wapp.urls'
 
@@ -151,7 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://app-finanzas-ten.vercel.app"
+    "https://app-finanzas-e6vm.vercel.app"
 ]
 CORS_ALLOW_CREDENTIALS = True
 
@@ -166,6 +166,7 @@ REST_FRAMEWORK = {
 }
 
 JWT_ACCESS_MINUTES = 60          # 1 hora
+<<<<<<< HEAD
 JWT_REFRESH_DAYS = 7             # 7 días
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -176,3 +177,6 @@ EMAIL_HOST_USER = "appnumo2025@gmail.com"
 EMAIL_HOST_PASSWORD = "ldex qrdv bhut bchk"  # 16 caracteres
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
+=======
+JWT_REFRESH_DAYS = 7             # 7 días
+>>>>>>> 3292b857b231763ff7a05bd26f0d421ace3786f3
