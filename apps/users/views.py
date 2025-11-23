@@ -12,13 +12,12 @@ from django.db import transaction
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
 import random
-from django.core.mail import send_mail
-from apps.users.models import CodigoRecuperacion
+from apps.users.models import CodigoRecuperacion, PasswordResetCode
 from django.utils import timezone
-from django.utils import timezone
-from django.core.mail import send_mail
 from datetime import timedelta
-from apps.users.models import PasswordResetCode
+
+from apps.users.email_utils import enviar_correo_reset
+
 
 class UsuarioViewSet(viewsets.ModelViewSet):
     queryset = Usuario.objects.all()
@@ -149,16 +148,17 @@ def enviar_codigo_recuperacion(request):
     # Guardar en BD
     CodigoRecuperacion.objects.create(usuario=usuario, codigo=codigo)
 
-    # Enviar correo
-    send_mail(
-        subject="Código de Recuperación de Contraseña",
-        message=f"Tu código de verificación es: {codigo}",
-        from_email="tucorreo@gmail.com",     # Cambia esto por tu Gmail
-        recipient_list=[email],
-        fail_silently=False
-    )
+    # Enviar correo con SendGrid
+    ok = enviar_correo_reset(email, codigo)
+
+    if not ok:
+        return Response(
+            {"error": "No se pudo enviar el correo de recuperación."},
+            status=500
+        )
 
     return Response({"message": "Código enviado correctamente."}, status=200)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verificar_codigo_recuperacion(request):
@@ -225,18 +225,20 @@ def enviar_codigo_reset(request):
     # Crear código de 6 dígitos
     codigo = str(random.randint(100000, 999999))
 
+    # Guardar el código en la BD
     PasswordResetCode.objects.create(usuario=usuario, codigo=codigo)
 
-    # Enviar Gmail
-    send_mail(
-        subject="Código de recuperación",
-        message=f"Tu código de recuperación es: {codigo}",
-        from_email=None,
-        recipient_list=[email],
-        fail_silently=False,
-    )
+    # 🔹 Enviar correo con SendGrid (API HTTP)
+    ok = enviar_correo_reset(email, codigo)
+
+    if not ok:
+        return Response(
+            {"error": "No se pudo enviar el correo de recuperación."},
+            status=500
+        )
 
     return Response({"message": "Código enviado al correo."}, status=200)
+
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def verificar_codigo_reset(request):
