@@ -169,10 +169,11 @@ JWT_ACCESS_MINUTES = 60          # 1 hora
 JWT_REFRESH_DAYS = 7             # 7 días
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
-EMAIL_HOST = "smtp.gmail.com"
+EMAIL_HOST = "smtp.sendgrid.net"
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = "appnumo2025@gmail.com"
-EMAIL_HOST_PASSWORD = "ldex qrdv bhut bchk"  # 16 caracteres
-DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+EMAIL_HOST_USER = "apikey"
+EMAIL_HOST_PASSWORD = os.getenv("SENDGRID_API_KEY")
+DEFAULT_FROM_EMAIL = "appnumo2025@gmail.com"
+EMAIL_TIMEOUT = 10
 
