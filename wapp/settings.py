@@ -166,7 +166,6 @@ REST_FRAMEWORK = {
 }
 
 JWT_ACCESS_MINUTES = 60          # 1 hora
-<<<<<<< HEAD
 JWT_REFRESH_DAYS = 7             # 7 días
 
 EMAIL_BACKEND = "django.core.mail.backends.smtp.EmailBackend"
@@ -177,6 +176,3 @@ EMAIL_HOST_USER = "appnumo2025@gmail.com"
 EMAIL_HOST_PASSWORD = "ldex qrdv bhut bchk"  # 16 caracteres
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
-=======
-JWT_REFRESH_DAYS = 7             # 7 días
->>>>>>> 3292b857b231763ff7a05bd26f0d421ace3786f3
