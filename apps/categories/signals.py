@@ -22,8 +22,8 @@ def _to_decimal(value) -> Decimal:
 def _recalcular_porcentaje(usuario):
     """
     Recalcula para un usuario:
-      - montoPlanificado: suma de montos de categorías tipo Gasto
-      - montoEjecutado:   suma de montos de categorías tipo Gasto_Fijo
+      - montoPlanificado: suma de montos de categorías tipo Gasto_Fijo
+      - montoEjecutado:   suma de montos de categorías tipo Gasto
       - porcentaje:       (ejecutado / planificado) * 100, tope 100
     """
     if not usuario:
@@ -32,21 +32,23 @@ def _recalcular_porcentaje(usuario):
 
     #print(f"\n🔄 [PORCENTAJE] Recalculando para usuario ID={usuario.pk} ...")
 
-    agregados_gasto = CategoriUsuario.objects.filter(
-        usuario=usuario,
-        categoria__tipo_categoria=TipoCategoriaChoices.GAS,
-    ).aggregate(total=Sum("monto"))
-
-    agregados_gasto_fijo = CategoriUsuario.objects.filter(
+    # Ahora GASTO_FIJO = planificado
+    agregados_planificado = CategoriUsuario.objects.filter(
         usuario=usuario,
         categoria__tipo_categoria=TipoCategoriaChoices.GAS_FIJO,
     ).aggregate(total=Sum("monto"))
 
-    #print(f"📌 [PORCENTAJE] Gasto planificado: {agregados_gasto}")
-    #print(f"📌 [PORCENTAJE] Gasto fijo ejecutado: {agregados_gasto_fijo}")
+    # Y GASTO = ejecutado
+    agregados_ejecutado = CategoriUsuario.objects.filter(
+        usuario=usuario,
+        categoria__tipo_categoria=TipoCategoriaChoices.GAS,
+    ).aggregate(total=Sum("monto"))
 
-    planificado = _to_decimal(agregados_gasto.get("total") or 0)
-    ejecutado = _to_decimal(agregados_gasto_fijo.get("total") or 0)
+    #print(f"📌 [PORCENTAJE] Gasto planificado (GAS_FIJO): {agregados_planificado}")
+    #print(f"📌 [PORCENTAJE] Gasto ejecutado (GAS): {agregados_ejecutado}")
+
+    planificado = _to_decimal(agregados_planificado.get("total") or 0)
+    ejecutado = _to_decimal(agregados_ejecutado.get("total") or 0)
 
     #print(f"➡️ [PORCENTAJE] Monto planificado = {planificado}")
     #print(f"➡️ [PORCENTAJE] Monto ejecutado   = {ejecutado}")
@@ -79,6 +81,7 @@ def _recalcular_porcentaje(usuario):
 
     pe.save()
     #print("✅ [PORCENTAJE] Guardado correctamente.\n")
+
 
 
 # ===================== CONTROL DEL CONSUMO =====================
