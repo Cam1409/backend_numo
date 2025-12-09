@@ -72,7 +72,7 @@ MIDDLEWARE = [
     
 ]
 
-CSRF_TRUSTED_ORIGINS = ['https://backend-numo.onrender.com', 'https://app-finanzas-se4d.vercel.app'] 
+CSRF_TRUSTED_ORIGINS = ['https://backend-numo.onrender.com', 'https://app-finanzas-wv1g.vercel.app'] 
 
 ROOT_URLCONF = 'wapp.urls'
 
@@ -151,7 +151,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
-    "https://app-finanzas-se4d.vercel.app"
+    "https://app-finanzas-wv1g.vercel.app"
 ]
 CORS_ALLOW_CREDENTIALS = True
 
